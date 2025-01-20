@@ -2,8 +2,7 @@
 # Build your Java project and run tests with Apache Maven.
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
-# This is an example of using VeraDemo Java test application with the Veracode Static Pipeline scanner.  A Veracode subscription is required.
-trigger:
+# This is an example of using VeraDemo Java test application with the Veracode Static Pipeline scanner.  A Veracode trigger:
 - main
 pool:
   vmImage: 'ubuntu-latest'
@@ -17,12 +16,23 @@ steps:
       echo "Installing Veracode CLI..."
       curl -fsS https://tools.veracode.com/veracode-cli/install | sh
 
-      # Add Veracode CLI to PATH
-      export PATH="$PATH:$HOME/.veracode"
+      # Check where the Veracode CLI was installed
+      if [ -d "$HOME/.veracode" ]; then
+        CLI_PATH="$HOME/.veracode"
+      elif [ -d "/usr/local/veracode" ]; then
+        CLI_PATH="/usr/local/veracode"
+      else
+        echo "Veracode CLI installation directory not found."
+        exit 1
+      fi
+      echo "Veracode CLI installed at: $CLI_PATH"
 
-      # Verify installation
+      # Add Veracode CLI to PATH
+      export PATH="$PATH:$CLI_PATH"
+
+      # Verify the Veracode CLI is accessible
       which veracode || { echo "Veracode CLI not found in PATH."; exit 1; }
-      veracode --version || { echo "Veracode CLI installation failed."; exit 1; }
+      veracode --version || { echo "Failed to verify Veracode CLI."; exit 1; }
 
       # Define the output directory for packaging
       OUTPUT_DIR=$(Build.ArtifactStagingDirectory)/veracode_package
@@ -47,6 +57,7 @@ steps:
   env: 
       VERACODE_API_KEY_ID: 'd2f6be6ae1c926f405a7b86a079947d'
       VERACODE_API_KEY_SECRET: '9a4a8bb4a88b4950dc3b5d118f9125a0e3c1e80be7964cbe04fbeceb7dfc3c51b018c0d3e882d69b2828b66a444abce2c15fd28e0081a53a89cfeafd7be27e96'
+
 
 # Step 2: Publish Packaged Files as Build Artifacts
 - task: Bash@3
