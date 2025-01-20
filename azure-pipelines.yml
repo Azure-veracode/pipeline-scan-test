@@ -21,6 +21,7 @@ steps:
       export PATH="$PATH:$HOME/.veracode"
 
       # Verify installation
+      which veracode || { echo "Veracode CLI not found in PATH."; exit 1; }
       veracode --version || { echo "Veracode CLI installation failed."; exit 1; }
 
       # Define the output directory for packaging
