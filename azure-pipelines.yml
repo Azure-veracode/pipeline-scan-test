@@ -8,17 +8,47 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 steps:
-- task: Maven@3
-  displayName: Build with Maven
+- task: Bash@3
+  displayName: 'Install Veracode CLI and Package Source Code'
   inputs:
-    mavenPomFile: 'app/pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.8'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+    targetType: 'inline'
+    script: |
+      # Install Veracode CLI
+      echo "Installing Veracode CLI..."
+      curl -fsS https://tools.veracode.com/veracode-cli/install | sh
+
+      # Verify installation
+      veracode --version || { echo "Veracode CLI installation failed."; exit 1; }
+
+      # Define the output directory for packaging
+      OUTPUT_DIR=$(Build.ArtifactStagingDirectory)/veracode_package
+      echo "Using output directory: $OUTPUT_DIR"
+
+      # Create the output directory if it doesn't exist
+      mkdir -p $OUTPUT_DIR
+
+      # Navigate to the source code directory
+      cd $(Build.SourcesDirectory)
+
+      # Package the source code using Veracode CLI
+      veracode package -s $(Build.SourcesDirectory) -t directory -o $OUTPUT_DIR
+
+      # Check if the output directory contains the package
+      if [ -z "$(ls -A $OUTPUT_DIR)" ]; then
+        echo "Packaging failed. No files were generated."
+        exit 1
+      fi
+
+      echo "Packaging completed. Files saved to: $OUTPUT_DIR"
+
+# Step 2: Publish Packaged Files as Build Artifacts
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Packaged Artifacts'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/veracode_package'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
 - task: Bash@3
   displayName: Veracode Pipeline
   inputs:
