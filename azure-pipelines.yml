@@ -17,6 +17,9 @@ steps:
       echo "Installing Veracode CLI..."
       curl -fsS https://tools.veracode.com/veracode-cli/install | sh
 
+      # Add Veracode CLI to PATH
+      export PATH="$PATH:$HOME/.veracode"
+
       # Verify installation
       veracode --version || { echo "Veracode CLI installation failed."; exit 1; }
 
@@ -39,8 +42,7 @@ steps:
         exit 1
       fi
 
-      echo "Packaging completed. Files saved to: $OUTPUT_DIR"
-  
+      echo "Packaging completed. Files saved to: $OUTPUT_DIR"  
   env: 
       VERACODE_API_KEY_ID: 'd2f6be6ae1c926f405a7b86a079947d'
       VERACODE_API_KEY_SECRET: '9a4a8bb4a88b4950dc3b5d118f9125a0e3c1e80be7964cbe04fbeceb7dfc3c51b018c0d3e882d69b2828b66a444abce2c15fd28e0081a53a89cfeafd7be27e96'
