@@ -40,22 +40,33 @@ steps:
       fi
 
       echo "Packaging completed. Files saved to: $OUTPUT_DIR"
+  
+  env: 
+      VERACODE_API_KEY_ID: 'd2f6be6ae1c926f405a7b86a079947d'
+      VERACODE_API_KEY_SECRET: '9a4a8bb4a88b4950dc3b5d118f9125a0e3c1e80be7964cbe04fbeceb7dfc3c51b018c0d3e882d69b2828b66a444abce2c15fd28e0081a53a89cfeafd7be27e96'
 
 # Step 2: Publish Packaged Files as Build Artifacts
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Packaged Artifacts'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/veracode_package'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
-
 - task: Bash@3
   displayName: Veracode Pipeline
   inputs:
     targetType: 'inline'
     script: |
+      # Step 1: Download the Veracode pipeline scanner
       curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
+      
+      # Step 2: Unzip the scanner
       unzip -o pipeline-scan-LATEST.zip
-      java -jar pipeline-scan.jar -vid 'd2f6be6ae1c926f405a7b86a079947d0' -vkey '9a4a8bb4a88b4950dc3b5d118f9125a0e3c1e80be7964cbe04fbeceb7dfc3c51b018c0d3e882d69b2828b66a444abce2c15fd28e0081a53a89cfeafd7be27e96' -f /home/vsts/work/1/s/app/target/verademo.war || true
+
+      # Step 3: Navigate to the directory containing the packaged files
+      cd $(Build.ArtifactStagingDirectory)
+
+      # Step 4: Run the pipeline scan on all packaged files
+      for file in $(find . -type f); do
+        echo "Scanning file: $file"
+        java -jar pipeline-scan.jar \
+          -vid 'd2f6be6ae1c926f405a7b86a079947d0' \
+          -vkey '9a4a8bb4a88b4950dc3b5d118f9125a0e3c1e80be7964cbe04fbeceb7dfc3c51b018c0d3e882d69b2828b66a444abce2c15fd28e0081a53a89cfeafd7be27e96' \
+          -f "$file" || true
+      done
 - publish: $(System.DefaultWorkingDirectory)/results.json
   artifact: VeracodeBaseline
