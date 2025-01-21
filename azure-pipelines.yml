@@ -4,6 +4,7 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+steps:
 # Step 1: Package Binaries
 - task: CmdLine@2
   displayName: Package Artifacts
