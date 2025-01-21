@@ -1,3 +1,9 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
 # Step 1: Package Binaries
 - task: CmdLine@2
   displayName: Package Artifacts
