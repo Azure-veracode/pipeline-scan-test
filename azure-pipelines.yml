@@ -8,51 +8,13 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 steps:
-- task: Bash@3
-  displayName: 'Install Veracode CLI and Package Source Code'
+- task: CmdLine@2
+  displayName: Veracode static scan
   inputs:
-    targetType: 'inline'
-    script: |
-      # Install Veracode CLI
-      echo "Installing Veracode CLI..."
-      INSTALL_OUTPUT=$(curl -fsS https://tools.veracode.com/veracode-cli/install | sh)
-
-      # Extract installation directory from output
-      CLI_PATH=$(echo "$INSTALL_OUTPUT" | grep -oP '(?<=Veracode CLI has been installed to ).*')
-
-      if [ -z "$CLI_PATH" ]; then
-        echo "Veracode CLI installation directory not found in installation output."
-        exit 1
-      fi
-      echo "Veracode CLI installed at: $CLI_PATH"
-
-      # Add Veracode CLI to PATH
-      export PATH="$PATH:$CLI_PATH"
-
-      # Verify the Veracode CLI is accessible
-      which veracode || { echo "Veracode CLI not found in PATH."; exit 1; }
-      veracode --version || { echo "Failed to verify Veracode CLI."; exit 1; }
-
-      # Define the output directory for packaging
-      OUTPUT_DIR=$(Build.ArtifactStagingDirectory)/veracode_package
-      echo "Using output directory: $OUTPUT_DIR"
-
-      # Create the output directory if it doesn't exist
-      mkdir -p $OUTPUT_DIR
-
-      # Navigate to the source code directory
-      cd $(Build.SourcesDirectory)
-
-      # Package the source code using Veracode CLI
-      veracode package -s $(Build.SourcesDirectory) -t directory -o $OUTPUT_DIR
-
-      # Check if the output directory contains the package
-      if [ -z "$(ls -A $OUTPUT_DIR)" ]; then
-        echo "Packaging failed. No files were generated."
-        exit 1
-      fi
-
-      echo "Packaging completed. Files saved to: $OUTPUT_DIR"
+      script: |
+        curl -fsS https://tools.veracode.com/veracode-cli/install | sh
+        ./veracode package --source /home/divya/verademo-new --output $(Build.ArtifactStagingDirectory)/verascan --trust
+        ./veracode static scan $(Build.ArtifactStagingDirectory)/verascan/verademo.war
   env: 
       VERACODE_API_KEY_ID: 'd2f6be6ae1c926f405a7b86a079947d'
       VERACODE_API_KEY_SECRET: '9a4a8bb4a88b4950dc3b5d118f9125a0e3c1e80be7964cbe04fbeceb7dfc3c51b018c0d3e882d69b2828b66a444abce2c15fd28e0081a53a89cfeafd7be27e96'
