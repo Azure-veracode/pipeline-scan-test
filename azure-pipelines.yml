@@ -5,6 +5,11 @@
     script: |
       curl -fsS https://tools.veracode.com/veracode-cli/install | sh
       ./veracode package --source $(Build.SourcesDirectory) --output $(Build.ArtifactStagingDirectory)/artifacts --trust
+  
+  env: 
+      VERACODE_API_KEY_ID: 'f53289447dc774d0ef0987a3ee1545ea'
+      VERACODE_API_KEY_SECRET: '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f'
+
 
 # Step 2: Archive Packaged Binaries
 - task: ArchiveFiles@2
