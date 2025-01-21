@@ -24,6 +24,19 @@ steps:
       echo "Contents of the output directory:"
       ls -la $(Build.ArtifactStagingDirectory)
 
+- task: CmdLine@2
+  displayName: Debug File Path
+  inputs:
+    script: |
+      echo "Checking the file path and contents:"
+      ls -la /home/vsts/work/1/a
+
+- task: CmdLine@2
+  displayName: Fix File Permissions
+  inputs:
+    script: |
+      chmod 755 /home/vsts/work/1/a/autopackage.zip
+
 # Step 3: Scan the Packaged File
 - task: CmdLine@2
   displayName: Veracode Pipeline Scan
