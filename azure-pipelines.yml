@@ -13,8 +13,8 @@ steps:
       curl -fsS https://tools.veracode.com/veracode-cli/install | sh
       ./veracode package --source $(Build.SourcesDirectory) --output $(Build.ArtifactStagingDirectory)/autopackage.zip --trust
   env: 
-      VERACODE_API_KEY_ID: 'd2f6be6ae1c926f405a7b86a079947d'
-      VERACODE_API_KEY_SECRET: '9a4a8bb4a88b4950dc3b5d118f9125a0e3c1e80be7964cbe04fbeceb7dfc3c51b018c0d3e882d69b2828b66a444abce2c15fd28e0081a53a89cfeafd7be27e96
+      VERACODE_API_KEY_ID: 'f53289447dc774d0ef0987a3ee1545ea'
+      VERACODE_API_KEY_SECRET: '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f'
 
 # Step 2: Publish the File as Artifact
 - task: PublishBuildArtifacts@1
