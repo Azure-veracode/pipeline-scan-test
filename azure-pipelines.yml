@@ -5,43 +5,38 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-# Step 1: Autopackage with Veracode CLI
+# Step 1: Autopackage
 - task: CmdLine@2
-  displayName: Veracode Autopackage
+  displayName: Veracode Static Scan - Autopackage
   inputs:
     script: |
       curl -fsS https://tools.veracode.com/veracode-cli/install | sh
       ./veracode package --source $(Build.SourcesDirectory) --output $(Build.ArtifactStagingDirectory)/autopackage.zip --trust
   env: 
       VERACODE_API_KEY_ID: 'd2f6be6ae1c926f405a7b86a079947d'
-      VERACODE_API_KEY_SECRET: '9a4a8bb4a88b4950dc3b5d118f9125a0e3c1e80be7964cbe04fbeceb7dfc3c51b018c0d3e882d69b2828b66a444abce2c15fd28e0081a53a89cfeafd7be27e96'
+      VERACODE_API_KEY_SECRET: '9a4a8bb4a88b4950dc3b5d118f9125a0e3c1e80be7964cbe04fbeceb7dfc3c51b018c0d3e882d69b2828b66a444abce2c15fd28e0081a53a89cfeafd7be27e96
 
-# Step 2: Debug Output Directory
-- task: CmdLine@2
-  displayName: Verify Packaged Files
+# Step 2: Publish the File as Artifact
+- task: PublishBuildArtifacts@1
+  displayName: Publish Package as Artifact
   inputs:
-    script: |
-      echo "Contents of the output directory:"
-      ls -la $(Build.ArtifactStagingDirectory)
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/autopackage.zip'
+    ArtifactName: 'temp-package'
+    publishLocation: 'Container'
 
-- task: CmdLine@2
-  displayName: Debug File Path
+# Step 3: Download the Artifact
+- task: DownloadPipelineArtifact@2
+  displayName: Download Temp Package
   inputs:
-    script: |
-      echo "Checking the file path and contents:"
-      ls -la /home/vsts/work/1/a
+    buildType: 'current'
+    artifact: 'temp-package'
+    path: '$(Pipeline.Workspace)'
 
-- task: CmdLine@2
-  displayName: Fix File Permissions
-  inputs:
-    script: |
-      chmod 755 /home/vsts/work/1/a/autopackage.zip
-
-# Step 3: Scan the Packaged File
+# Step 4: Veracode Pipeline Scan
 - task: CmdLine@2
   displayName: Veracode Pipeline Scan
   inputs:
     script: |
       curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
       unzip -o pipeline-scan-LATEST.zip
-      java -jar pipeline-scan.jar -vid 'f53289447dc774d0ef0987a3ee1545ea' -vkey '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f' -f /home/vsts/work/1/a/autopackage.zip
+      java -jar pipeline-scan.jar -vid 'f53289447dc774d0ef0987a3ee1545ea' -vkey '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f' -f $(Pipeline.Workspace)/temp-package/autopackage.zip
