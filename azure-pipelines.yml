@@ -13,7 +13,7 @@ steps:
   inputs:
       script: |
         curl -fsS https://tools.veracode.com/veracode-cli/install | sh
-        ./veracode package --source /home/divya/verademo-new --output $(Build.ArtifactStagingDirectory)/verascan --trust
+        ./veracode package --source $(Build.SourcesDirectory) --output $(Build.ArtifactStagingDirectory)/verascan --trust
         ./veracode static scan $(Build.ArtifactStagingDirectory)/verascan/verademo.war
   env: 
       VERACODE_API_KEY_ID: 'd2f6be6ae1c926f405a7b86a079947d'
