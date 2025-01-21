@@ -1,53 +1,42 @@
-trigger:
-- main
-
-pool:
-  vmImage: 'ubuntu-latest'
-
-steps:
-# Step 1: Autopackage
+# Step 1: Package Binaries
 - task: CmdLine@2
-  displayName: Veracode Static Scan - Autopackage
+  displayName: Package Artifacts
   inputs:
     script: |
       curl -fsS https://tools.veracode.com/veracode-cli/install | sh
-      ./veracode package --source $(Build.SourcesDirectory) --output $(Build.ArtifactStagingDirectory)/autopackage.zip --trust
-      echo "Artifacts created at: $(Build.ArtifactStagingDirectory)/artifacts"
-  env: 
-      VERACODE_API_KEY_ID: 'f53289447dc774d0ef0987a3ee1545ea'
-      VERACODE_API_KEY_SECRET: '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f'
+      ./veracode package --source $(Build.SourcesDirectory) --output $(Build.ArtifactStagingDirectory)/artifacts --trust
 
-# Step 2: Create ZIP File
-- task: CmdLine@2
-  displayName: Create Consolidated ZIP File
+# Step 2: Archive Packaged Binaries
+- task: ArchiveFiles@2
+  displayName: Archive Packaged Binaries
   inputs:
-    script: |
-      echo "Zipping all autopackaged artifacts..."
-      zip -r $(Build.ArtifactStagingDirectory)/autopackage.zip $(Build.ArtifactStagingDirectory)/artifacts
-      echo "Contents of the ZIP file:"
-      unzip -l $(Build.ArtifactStagingDirectory)/autopackage.zip
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/artifacts'
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
 
-# Step 3: Publish ZIP File to Container
+# Step 3: Publish the Archived File
 - task: PublishBuildArtifacts@1
-  displayName: Publish Consolidated ZIP File as Artifact
+  displayName: Publish Packaged Binaries
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/autopackage.zip'
-    ArtifactName: 'autopackage'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    ArtifactName: 'packaged-binaries'
     publishLocation: 'Container'
 
-# Step 4: Download ZIP File
+# Step 4: Download the Archived File
 - task: DownloadPipelineArtifact@2
-  displayName: Download Consolidated ZIP File
+  displayName: Download Packaged Binaries
   inputs:
     buildType: 'current'
-    artifact: 'autopackage'
+    artifact: 'packaged-binaries'
     path: '$(Pipeline.Workspace)'
 
-# Step 4: Veracode Pipeline Scan
+# Step 5: Scan the ZIP File with Veracode
 - task: CmdLine@2
   displayName: Veracode Pipeline Scan
   inputs:
     script: |
       curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
       unzip -o pipeline-scan-LATEST.zip
-      java -jar pipeline-scan.jar -vid 'f53289447dc774d0ef0987a3ee1545ea' -vkey '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f' -f $(Pipeline.Workspace)/autopackage.zip
+      java -jar pipeline-scan.jar -vid 'f53289447dc774d0ef0987a3ee1545ea' -vkey '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f' -f $(Pipeline.Workspace)/$(Build.BuildId).zip
