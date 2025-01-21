@@ -12,37 +12,36 @@ steps:
     script: |
       curl -fsS https://tools.veracode.com/veracode-cli/install | sh
       ./veracode package --source $(Build.SourcesDirectory) --output $(Build.ArtifactStagingDirectory)/autopackage.zip --trust
+      echo "Artifacts created at: $(Build.ArtifactStagingDirectory)/artifacts"
   env: 
       VERACODE_API_KEY_ID: 'f53289447dc774d0ef0987a3ee1545ea'
       VERACODE_API_KEY_SECRET: '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f'
 
-# Step 3: Publish the File as Artifact
-- task: PublishBuildArtifacts@1
-  displayName: Publish Package as Artifact
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/autopackage.zip'
-    ArtifactName: 'temp-package'
-    publishLocation: 'Container'
-
-# Step 4: Download the Artifact and Set Permissions
-- task: DownloadPipelineArtifact@2
-  displayName: Download Temp Package
-  inputs:
-    buildType: 'current'
-    artifact: 'temp-package'
-    path: '$(Pipeline.Workspace)'
-
-# Verify and Set Permissions
+# Step 2: Create ZIP File
 - task: CmdLine@2
-  displayName: Verify Download and Set Permissions
+  displayName: Create Consolidated ZIP File
   inputs:
     script: |
-      echo "Verifying downloaded files:"
-      ls -la $(Pipeline.Workspace)
-      echo "Setting permissions for the downloaded artifact:"
-      chmod 777 $(Pipeline.Workspace)/autopackage.zip
-      ls -la $(Pipeline.Workspace)
+      echo "Zipping all autopackaged artifacts..."
+      zip -r $(Build.ArtifactStagingDirectory)/autopackage.zip $(Build.ArtifactStagingDirectory)/artifacts
+      echo "Contents of the ZIP file:"
+      unzip -l $(Build.ArtifactStagingDirectory)/autopackage.zip
 
+# Step 3: Publish ZIP File to Container
+- task: PublishBuildArtifacts@1
+  displayName: Publish Consolidated ZIP File as Artifact
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/autopackage.zip'
+    ArtifactName: 'autopackage'
+    publishLocation: 'Container'
+
+# Step 4: Download ZIP File
+- task: DownloadPipelineArtifact@2
+  displayName: Download Consolidated ZIP File
+  inputs:
+    buildType: 'current'
+    artifact: 'autopackage'
+    path: '$(Pipeline.Workspace)'
 
 # Step 4: Veracode Pipeline Scan
 - task: CmdLine@2
@@ -51,4 +50,4 @@ steps:
     script: |
       curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
       unzip -o pipeline-scan-LATEST.zip
-      java -jar pipeline-scan.jar -vid 'f53289447dc774d0ef0987a3ee1545ea' -vkey '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f' -f $(Pipeline.Workspace)/temp-package/autopackage.zip
+      java -jar pipeline-scan.jar -vid 'f53289447dc774d0ef0987a3ee1545ea' -vkey '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f' -f $(Pipeline.Workspace)/autopackage.zip
