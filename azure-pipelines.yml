@@ -16,13 +16,6 @@ steps:
       VERACODE_API_KEY_ID: 'f53289447dc774d0ef0987a3ee1545ea'
       VERACODE_API_KEY_SECRET: '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f'
 
-# Step 2: Set Permissions Before Publishing
-- task: CmdLine@2
-  displayName: Fix Permissions Before Publishing
-  inputs:
-    script: |
-      chmod 777 $(Build.ArtifactStagingDirectory)/autopackage.zip
-
 # Step 3: Publish the File as Artifact
 - task: PublishBuildArtifacts@1
   displayName: Publish Package as Artifact
@@ -31,7 +24,7 @@ steps:
     ArtifactName: 'temp-package'
     publishLocation: 'Container'
 
-# Step 4: Download the Artifact
+# Step 4: Download the Artifact and Set Permissions
 - task: DownloadPipelineArtifact@2
   displayName: Download Temp Package
   inputs:
@@ -39,21 +32,16 @@ steps:
     artifact: 'temp-package'
     path: '$(Pipeline.Workspace)'
 
-# Confirm the Artifact Path After Download
+# Verify and Set Permissions
 - task: CmdLine@2
-  displayName: Debug Downloaded Artifacts
+  displayName: Verify Download and Set Permissions
   inputs:
     script: |
-      echo "Listing files in the downloaded directory:"
-      ls -la $(Pipeline.Workspace)/temp-package
-
-
-# Step 5: Set Permissions After Downloading (Optional)
-- task: CmdLine@2
-  displayName: Fix Permissions After Downloading
-  inputs:
-    script: |
-      chmod 777 $(Pipeline.Workspace)/temp-package/autopackage.zip
+      echo "Verifying downloaded files:"
+      ls -la $(Pipeline.Workspace)
+      echo "Setting permissions for the downloaded artifact:"
+      chmod 777 $(Pipeline.Workspace)/autopackage.zip
+      ls -la $(Pipeline.Workspace)
 
 
 # Step 4: Veracode Pipeline Scan
