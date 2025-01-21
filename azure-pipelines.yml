@@ -32,6 +32,14 @@ steps:
     artifact: 'temp-package'
     path: '$(Pipeline.Workspace)'
 
+# Step 5: Set Permissions After Downloading (Optional)
+- task: CmdLine@2
+  displayName: Fix Permissions After Downloading
+  inputs:
+    script: |
+      chmod 777 $(Pipeline.Workspace)/temp-package/autopackage.zip
+
+
 # Step 4: Veracode Pipeline Scan
 - task: CmdLine@2
   displayName: Veracode Pipeline Scan
