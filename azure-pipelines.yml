@@ -48,7 +48,7 @@ steps:
   inputs:
     authenticationMethod: 'UsernamePassword'
     fileToScan: '$(Pipeline.Workspace)/$(Build.BuildId).zip'
-    policyName: 'Veracode Recommended Very High'
+    policyName: 'test policy'
     breakPipeline: true
 
 
