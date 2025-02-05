@@ -44,11 +44,20 @@ steps:
     artifact: 'packaged-binaries'
     path: '$(Pipeline.Workspace)'
 
-# Step 5: Scan the ZIP File with Veracode
-- task: CmdLine@2
-  displayName: Veracode Pipeline Scan
+- task: VeracodePipelineScan@0
   inputs:
-    script: |
-      curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
-      unzip -o pipeline-scan-LATEST.zip
-      java -jar pipeline-scan.jar -vid 'f53289447dc774d0ef0987a3ee1545ea' -vkey '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f' -f $(Pipeline.Workspace)/$(Build.BuildId).zip
+    authenticationMethod: 'UsernamePassword'
+    fileToScan: '$(Pipeline.Workspace)/$(Build.BuildId).zip'
+    policyName: 'Veracode Recommended Very High'
+    breakPipeline: true
+
+
+
+# Step 5: Scan the ZIP File with Veracode
+# - task: CmdLine@2
+#   displayName: Veracode Pipeline Scan
+#   inputs:
+#     script: |
+#       curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
+#       unzip -o pipeline-scan-LATEST.zip
+#       java -jar pipeline-scan.jar -vid 'f53289447dc774d0ef0987a3ee1545ea' -vkey '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f' -f $(Pipeline.Workspace)/$(Build.BuildId).zip
