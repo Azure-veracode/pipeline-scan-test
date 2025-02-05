@@ -4,7 +4,18 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+
 steps:
+
+- task: VeracodeCommunityScaAdoExtension@1
+  inputs:
+    scanType: 'directory'
+    scanTarget: '$(Build.SourcesDirectory)'
+    minCVSS: '5'
+    failBuild: true
+  env:
+    SRCCLR_API_TOKEN: $(SECRET)
+
 # Step 1: Package Binaries
 - task: CmdLine@2
   displayName: Package Artifacts
