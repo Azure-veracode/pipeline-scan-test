@@ -7,26 +7,26 @@ pool:
 
 steps:
 
-- task: VeracodeCommunityScaAdoExtension@1
-  inputs:
-    scanType: 'directory'
-    scanTarget: '$(Build.SourcesDirectory)'
-    minCVSS: '5'
-    failBuild: true
-  env:
-    SRCCLR_API_TOKEN: $(SECRET)
+# - task: VeracodeCommunityScaAdoExtension@1
+#   inputs:
+#     scanType: 'directory'
+#     scanTarget: '$(Build.SourcesDirectory)'
+#     minCVSS: '5'
+#     failBuild: true
+#   env:
+#     SRCCLR_API_TOKEN: $(SECRET)
 
 # Step 1: Package Binaries
-- task: CmdLine@2
-  displayName: Package Artifacts
-  inputs:
-    script: |
-      curl -fsS https://tools.veracode.com/veracode-cli/install | sh
-      ./veracode package --source $(Build.SourcesDirectory) --output $(Build.ArtifactStagingDirectory)/artifacts --trust
+# - task: CmdLine@2
+#   displayName: Package Artifacts
+#   inputs:
+#     script: |
+#       curl -fsS https://tools.veracode.com/veracode-cli/install | sh
+#       ./veracode package --source $(Build.SourcesDirectory) --output $(Build.ArtifactStagingDirectory)/artifacts --trust
   
-  env: 
-      VERACODE_API_KEY_ID: 'f53289447dc774d0ef0987a3ee1545ea'
-      VERACODE_API_KEY_SECRET: '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f'
+#   env: 
+#       VERACODE_API_KEY_ID: 'fa'
+#       VERACODE_API_KEY_SECRET: '2f'
 
 
 # Step 2: Archive Packaged Binaries
@@ -57,11 +57,18 @@ steps:
 
 - task: VeracodePipelineScan@0
   inputs:
-    authenticationMethod: 'UsernamePassword'
+    serviceConnection: 'Veracode-Arun-GM'
     fileToScan: '$(Pipeline.Workspace)/$(Build.BuildId).zip'
-    policyName: 'test policy'
-    breakPipeline: true
-    # 
+    policyName: 'Al-Test'
+
+
+# - task: VeracodePipelineScan@0
+#   inputs:
+#     authenticationMethod: 'UsernamePassword'
+#     fileToScan: '$(Pipeline.Workspace)/$(Build.BuildId).zip'
+#     policyName: 'test policy'
+#     breakPipeline: true
+     
 
 
 
