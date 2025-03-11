@@ -40,6 +40,7 @@ steps:
     serviceConnection: 'Veracode-Arun-GM'
     fileToScan: '$(Build.SourcesDirectory)/verascan/verademo.war'
     policyName: 'Al-Test'
+    breakPipeline: true
 
 
 # - task: VeracodePipelineScan@0
