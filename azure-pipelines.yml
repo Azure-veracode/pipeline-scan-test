@@ -33,7 +33,7 @@ steps:
 - task: ArchiveFiles@2
   displayName: Archive Packaged Binaries
   inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/artifacts'
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
     includeRootFolder: true
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
