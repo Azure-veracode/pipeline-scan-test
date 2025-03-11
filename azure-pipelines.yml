@@ -38,7 +38,7 @@ steps:
 - task: VeracodePipelineScan@0
   inputs:
     serviceConnection: 'Veracode-Arun-GM'
-    fileToScan: './verascan'
+    fileToScan: '$(Build.SourcesDirectory)/verascan/verademo.war'
     policyName: 'Al-Test'
 
 
