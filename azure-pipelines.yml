@@ -58,7 +58,7 @@ steps:
 - task: VeracodePipelineScan@0
   inputs:
     serviceConnection: 'Veracode-Arun-GM'
-    fileToScan: '$(Pipeline.Workspace)/$(Build.BuildId).zip'
+    fileToScan: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
     policyName: 'Al-Test'
 
 
