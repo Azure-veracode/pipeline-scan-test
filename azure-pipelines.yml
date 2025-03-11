@@ -27,6 +27,14 @@ steps:
     pathToPublish: 'verascan'
     artifactName: 'verascan'
 
+- task: Bash@3
+  displayName: 'List all files in the workspace'
+  inputs:
+    targetType: 'inline'
+    script: |
+      echo "Listing all files in the workspace:"
+      ls -lahR $(Build.SourcesDirectory)
+
 - task: VeracodePipelineScan@0
   inputs:
     serviceConnection: 'Veracode-Arun-GM'
