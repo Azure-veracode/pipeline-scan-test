@@ -25,12 +25,12 @@ steps:
   displayName: 'Publish Verascan Artifact'
   inputs:
     pathToPublish: 'verascan'
-    artifactName: 'VeracodeScanResults'
+    artifactName: 'verascan'
 
 - task: VeracodePipelineScan@0
   inputs:
     serviceConnection: 'Veracode-Arun-GM'
-    fileToScan: '$(Build.SourcesDirectory)/verascan'
+    fileToScan: './verascan'
     policyName: 'Al-Test'
 
 
