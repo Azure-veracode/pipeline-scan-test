@@ -7,31 +7,42 @@ pool:
 
 steps:
 
-- task: Bash@3
-  displayName: 'Install Veracode CLI and Package Scan'
-  inputs:
-    targetType: 'inline'
-    script: |
-      curl -fsS https://tools.veracode.com/veracode-cli/install | sh
-      ./veracode package -das $(Build.SourcesDirectory) --output ./verascan
+# - task: Bash@3
+#   displayName: 'Install Veracode CLI and Package Scan'
+#   inputs:
+#     targetType: 'inline'
+#     script: |
+#       curl -fsS https://tools.veracode.com/veracode-cli/install | sh
+#       ./veracode package -das $(Build.SourcesDirectory) --output ./verascan
 
-      # Check if the verascan directory exists
-      if [ ! -d "verascan" ]; then
-        echo "Error: verascan directory not found."
-        exit 1
-      fi
+#       # Check if the verascan directory exists
+#       if [ ! -d "verascan" ]; then
+#         echo "Error: verascan directory not found."
+#         exit 1
+#       fi
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Verascan Artifact'
+# - task: PublishBuildArtifacts@1
+#   displayName: 'Publish Verascan Artifact'
+#   inputs:
+#     pathToPublish: 'verascan'
+#     artifactName: 'verascan'
+
+- task: Maven@3
   inputs:
-    pathToPublish: 'verascan'
-    artifactName: 'verascan'
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    goals: 'package'
 
 - task: VeracodePipelineScan@0
   inputs:
     VeracodeAPIID: '$(vid)'
     VeracodeAPIsecret: '$(vkey)'
-    fileToScan: './verascan'
+    fileToScan: './target/verademo.war'
     breakPipeline: false
   condition:
       succeededOrFailed()
