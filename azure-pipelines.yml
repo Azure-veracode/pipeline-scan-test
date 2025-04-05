@@ -27,37 +27,63 @@ steps:
     pathToPublish: 'verascan'
     artifactName: 'verascan'
 
-- task: Bash@3
-  displayName: 'List all files in the workspace'
-  inputs:
-    targetType: 'inline'
-    script: |
-      echo "Listing all files in the workspace:"
-      ls -lahR $(Build.SourcesDirectory)
-
 - task: VeracodePipelineScan@0
   inputs:
-    serviceConnection: 'Veracode-Arun-GM'
-    fileToScan: '$(Build.SourcesDirectory)/verascan/verademo.war'
-    policyName: 'Al-Test'
-    breakPipeline: 'true'
+    VeracodeAPIID: '$(vid)'
+    VeracodeAPIsecret: '$(vkey)'
+    fileToScan: './verascan'
+    breakPipeline: false
+  condition:
+      succeededOrFailed()
 
+- task: CmdLine@2
+  name: ExtractMitigations
+  env:
+    VERACODE_API_KEY_ID: $(vid)
+    VERACODE_API_KEY_SECRET: $(vkey)
+  inputs:
+    script: |
+      git clone https://github.com/cadonuno/veracode-pipeline-mitigation
+      pip install -r ./veracode-pipeline-mitigation/requirements.txt
+      python ./veracode-pipeline-mitigation/vcpipemit.py -an "Recent" -rf pipeline.json -of "toCompare.json"
 
-# - task: VeracodePipelineScan@0
-#   inputs:
-#     authenticationMethod: 'UsernamePassword'
-#     fileToScan: '$(Pipeline.Workspace)/$(Build.BuildId).zip'
-#     policyName: 'test policy'
-#     breakPipeline: true
-     
+- task: CmdLine@2
+  name: CompareResultsAndFailBuild
+  inputs:
+    script: |
+      git clone https://github.com/cadonuno/PipelineResultsCompare
+      pip install -r ./PipelineResultsCompare/requirements.txt
+      python ./PipelineResultsCompare/pipeline_results_compare.py -of "filtered_pipeline_results.json" -br pipeline.json -ff "toCompare.json" --fail_on_severity "Very High, High"
 
+- task: PublishBuildArtifacts@1
+  condition:
+      succeededOrFailed()
+  inputs:
+    pathToPublish: 'pipeline.json'
+    artifactName: results
+    
+- task: PublishBuildArtifacts@1
+  condition:
+      succeededOrFailed()
+  inputs:
+    pathToPublish: 'toCompare.json'
+    artifactName: results
+    
 
+- task: CmdLine@2
+  name: SaveResultsAsJunitTestResults
+  inputs:
+    script: |
+      echo Saving results as xml and html
+      curl -sSO https://raw.githubusercontent.com/cadonuno/Pipeline2JUnitXml/master/pipeline2junitxml.py
+      python pipeline2junitxml.py -f filtered_pipeline_results.json --xml_name PipelineScanJunit.xml
+      echo Finished saving results
+  condition:
+      succeededOrFailed()
 
-# Step 5: Scan the ZIP File with Veracode
-# - task: CmdLine@2
-#   displayName: Veracode Pipeline Scan
-#   inputs:
-#     script: |
-#       curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
-#       unzip -o pipeline-scan-LATEST.zip
-#       java -jar pipeline-scan.jar -vid 'f53289447dc774d0ef0987a3ee1545ea' -vkey '2d19d36158beb63d5f7305ac9078b07c08013cc408036b2dffd52049d0a3998eb9ca329c2e0cc3b2235b5e2e822834bf8233e44c58404f63b5701a68e8b9f53f' -f $(Pipeline.Workspace)/$(Build.BuildId).zip
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: 'PipelineScanJunit.xml'
+  condition:
+      succeededOrFailed()
