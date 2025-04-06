@@ -45,7 +45,7 @@ steps:
     breakPipeline: false
     baselineFileGeneration: true
     baselineFileStorageProject: 'Azure-veracode'
-    baselineFileStorageReponame: 'Azure-veracode/pipeline-scan-test'
+    baselineFileStorageReponame: 'pipeline-scan-test'
     baselineFileStorageBranch: 'main'
     baselineFileOptions: 'filtered'
   condition:
