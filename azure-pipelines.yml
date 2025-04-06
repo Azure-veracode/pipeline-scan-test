@@ -40,10 +40,11 @@ steps:
 
 - task: VeracodePipelineScan@0
   inputs:
-    VeracodeAPIID: '$(vid)'
-    VeracodeAPIsecret: '$(vkey)'
+    authenticationMethod: 'UsernamePassword'
     fileToScan: 'app/target/verademo.war'
     breakPipeline: false
+    baselineFileGeneration: true
+    baselineFileOptions: 'filtered'
   condition:
       succeededOrFailed()
 
