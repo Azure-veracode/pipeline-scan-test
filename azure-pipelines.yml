@@ -60,7 +60,7 @@ steps:
     script: |
       git clone https://github.com/cadonuno/veracode-pipeline-mitigation
       pip install -r ./veracode-pipeline-mitigation/requirements.txt
-      python ./veracode-pipeline-mitigation/vcpipemit.py -an "Recent" -rf pipeline.json -of "toCompare.json"
+      python ./veracode-pipeline-mitigation/vcpipemit.py -an "Veracode Azure Devops" -rf pipeline.json -of "toCompare.json"
 
 - task: CmdLine@2
   name: CompareResultsAndFailBuild
