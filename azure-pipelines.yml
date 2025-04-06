@@ -44,6 +44,8 @@ steps:
     fileToScan: 'app/target/verademo.war'
     breakPipeline: false
     baselineFileGeneration: true
+    baselineFileStorageProject: 'Azure-veracode'
+    baselineFileStorageReponame: 'Azure-veracode'
     baselineFileOptions: 'filtered'
   condition:
       succeededOrFailed()
